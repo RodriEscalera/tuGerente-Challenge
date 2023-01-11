@@ -85,19 +85,24 @@ function Starting() {
       filtros.push("codigo");
     }
 
-    results.filter((result) => {
-      for (let i = 0; i < filtros.length; i++) {
-        if (result[filtros[i]] == inputs[filtros[i]]) {
-          contador += 1;
-          console.log(contador + filtros[i]);
+    const retornar = [];
+    results.map((res) => {
+      res.filter((result) => {
+        for (let i = 0; i < filtros.length; i++) {
+          if (result[filtros[i]] == inputs[filtros[i]]) {
+            contador += 1;
+            //  console.log(contador + filtros[i]);
+          }
         }
-      }
-      if (contador == filtros.length) {
-        arreglo.push(result);
-        contador = 0;
-      }
+        if (contador == filtros.length) {
+          arreglo.push(result);
+          contador = 0;
+        }
+
+        //console.log(filtros);
+        return arreglo;
+      });
     });
-    console.log(filtros);
     return arreglo;
   };
 
@@ -118,16 +123,6 @@ function Starting() {
     dispatch(setResults(people));
   };
   //-------------------> FIREBASE
-
-  const onJuan = () => {
-    addPerson({
-      nombre: "Juan",
-      razonSocial: "Maxi kiosco",
-      nit: "44",
-      telefono: "911",
-      codigo: "4400",
-    });
-  };
 
   const [isAbelToAdd, setIsAbelToAdd] = useState(true);
 
@@ -296,7 +291,6 @@ function Starting() {
         }}
       >
         <Button
-          onClick={onJuan}
           variant="contained"
           sx={{
             height: "3rem",
@@ -307,9 +301,23 @@ function Starting() {
               backgroundColor: "#D92323",
             },
           }}
+          onClick={async () => {
+            for (let i = 0; i < 51; i++) {
+              const object = {
+                codigo: "4400",
+                nit: "44",
+                id: i,
+                nombre: `Juan ${i}`,
+                razonSocial: `Maxi kiosco ${i}`,
+                telefono: "911",
+              };
+              await addDoc(collection(db, "personas"), object);
+            }
+          }}
         >
-          Add Juan
+          Seed
         </Button>
+
         <Button
           onClick={handleSearch}
           variant="contained"

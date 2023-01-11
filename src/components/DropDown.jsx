@@ -12,10 +12,9 @@ import Card from "../commons/Card";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import { setResults } from "../store/results";
-
+import InfiniteScroll from "react-infinite-scroll-component";
 function DropDown() {
   //------------------> DROP
-
   const [isDrop, setIsDrop] = useState(false);
   const handleDrop = () => {
     setIsDrop(!isDrop);
@@ -47,7 +46,6 @@ function DropDown() {
   //------------------> HOVER EFFECT
 
   //------------------> FIREBASE
-
   const fetchPeople = async () => {
     const querySnapShot = await getDocs(collection(db, "personas"));
     const people = [];
@@ -61,20 +59,36 @@ function DropDown() {
     if (window.confirm("¿Estás seguro de que quieres eliminarlo?")) {
       await deleteDoc(doc(db, "personas", id));
       fetchPeople();
-      console.log("Persona eliminada con exito!");
+      alert("Persona eliminada con exito!");
     }
   };
 
-  useEffect(() => {
-    fetchPeople();
-  }, []);
   //------------------> FIREBASE
+
+  //------------------> MAPPING
+
+  const [pageNumber, setPageNumber] = useState(0);
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    if (results.length > 0) {
+      setData(results[pageNumber]);
+    }
+  }, [results]);
+
+  const handleScroll = () => {
+    const n = pageNumber;
+    setPageNumber((previousState) => previousState + 1);
+
+    setData([...data, ...results[n + 1]]);
+  };
 
   const [idPeople, setIdPeople] = useState("");
   const handleUpdate = (id) => {
     setIdPeople(id);
     dispatch(setModal(!modal));
   };
+
   return (
     <div
       style={{
@@ -82,6 +96,7 @@ function DropDown() {
         justifyContent: "center",
         alignItems: "center",
         flexDirection: "column",
+        scale: "0.7",
       }}
     >
       <div
@@ -93,10 +108,11 @@ function DropDown() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          marginTop: isDrop ? "-10rem" : "0",
         }}
       >
         <Typography variant="h5" sx={{ color: "white" }}>
-          MOSTRAR {results.length} RESULTADOS
+          MOSTRAR LOS RESULTADOS
         </Typography>
         <IconButton onClick={handleDrop}>
           {isDrop ? (
@@ -108,6 +124,7 @@ function DropDown() {
       </div>
       {isDrop ? (
         <div
+          id="scrollableDiv"
           style={{
             backgroundColor: "#282828",
             width: "70rem",
@@ -131,35 +148,43 @@ function DropDown() {
             <Typography variant="h5">AÑADIR PERSONA</Typography>
           </div>
           <ModalEdit idPeople={idPeople} />
-          {results.length > 0
-            ? results.map((persona) => (
-                <div style={{ display: "flex" }}>
-                  <Card persona={persona} />
-                  <Button
-                    onClick={() => deletePeople(persona.id)}
-                    sx={{
-                      height: "3rem",
-                      marginTop: "3rem",
-                      marginLeft: "1rem",
-                      color: "white",
-                    }}
-                  >
-                    <DeleteIcon />
-                  </Button>
-                  <Button
-                    onClick={() => handleUpdate(persona.id)}
-                    sx={{
-                      height: "3rem",
-                      marginTop: "3rem",
-                      marginLeft: "1rem",
-                      color: "white",
-                    }}
-                  >
-                    <EditIcon />
-                  </Button>
-                </div>
-              ))
-            : null}
+          <InfiniteScroll
+            hasMore={true}
+            dataLength={data.length}
+            next={handleScroll}
+            height={"50rem"}
+            scrollableTarget="scrollableDiv"
+          >
+            {data?.length > 0
+              ? data.map((persona) => (
+                  <div style={{ display: "flex" }}>
+                    <Card persona={persona} />
+                    <Button
+                      onClick={() => deletePeople(persona.id)}
+                      sx={{
+                        height: "3rem",
+                        marginTop: "3rem",
+                        marginLeft: "1rem",
+                        color: "white",
+                      }}
+                    >
+                      <DeleteIcon />
+                    </Button>
+                    <Button
+                      onClick={() => handleUpdate(persona.idf)}
+                      sx={{
+                        height: "3rem",
+                        marginTop: "3rem",
+                        marginLeft: "1rem",
+                        color: "white",
+                      }}
+                    >
+                      <EditIcon />
+                    </Button>
+                  </div>
+                ))
+              : null}
+          </InfiniteScroll>
           <div style={{ height: "2.5rem" }}></div>
         </div>
       ) : null}
